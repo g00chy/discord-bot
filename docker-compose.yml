@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  go: &go
+    build:
+      context: ./docker/go
+    volumes:
+      - "./:/src"
+    working_dir: /src
+    links:
+      - postgres
+    depends_on:
+      - postgres
+
+  afk_bot:
+    <<: *go
+    entrypoint: go run afk-bot.go
+  claim_bot:
+    <<: *go
+    entrypoint: go run claim-bot.go
+
+  postgres:
+    image: postgres:11-alpine
+    restart: always
+    env_file: .env
+    volumes:
+      - "db-data:/var/lib/postgresql/data"
+    ports:
+      - 5432:5432
+volumes:
+  db-data:
+    driver: local
