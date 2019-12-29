@@ -1,11 +1,12 @@
 package main
 
 import (
+	"discord-bot/lib/db"
+	"discord-bot/lib/discord"
+	"discord-bot/lib/dotenv"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/jinzhu/gorm"
-	"kokoro-bot/lib/db"
-	"kokoro-bot/lib/discord"
 	"log"
 	"os"
 	"strconv"
@@ -14,10 +15,16 @@ import (
 )
 
 func main() {
-	_ = discord.StartDiscordBot(onAfkMessageCreate)
+	dotenv.EnvLoad()
+	token := os.Getenv("AFK_BOT_TOKEN")
+	_ = discord.StartDiscordBot(onAfkMessageCreate, token)
 }
 
 func onAfkMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if discord.IsOwnMessage(s, m) {
+		return
+	}
+
 	c, err := s.State.Channel(m.ChannelID)
 
 	if err != nil {

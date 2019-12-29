@@ -1,10 +1,10 @@
 package db
 
 import (
+	"discord-bot/lib/dotenv"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"kokoro-bot/lib/dotenv"
 	"os"
 )
 
