@@ -18,6 +18,9 @@ services:
   claim_bot:
     <<: *go
     entrypoint: go run claim-bot.go
+  nleave_ban_bot:
+    <<: *go
+    entrypoint: go run nleave-ban-bot.go
 
   postgres:
     image: postgres:11-alpine
@@ -25,8 +28,7 @@ services:
     env_file: .env
     volumes:
       - "db-data:/var/lib/postgresql/data"
-    ports:
-      - 5432:5432
+
 volumes:
   db-data:
     driver: local

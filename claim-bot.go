@@ -21,6 +21,9 @@ func onClaimMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 	channel, err := s.State.Channel(m.ChannelID)
+	if err != nil {
+		discord.SendMessage(s, channel, "エラーだよ")
+	}
 
 	fmt.Printf("%20s %20s %20s %20s %20s > %s\n", channel.ParentID, channel.Name, m.ChannelID, time.Now().Format(time.Stamp), m.Author.Username, m.Content)
 
