@@ -11,7 +11,7 @@ import (
 
 func main() {
 	dotenv.EnvLoad()
-	token := os.Getenv("CLAIM_BOT_TOKEN")
+	token := os.Getenv("NLEAVE_BAN_BOT_TOKEN")
 	_ = discord.StartDiscordBot(onLeaveMessageCreate, token)
 }
 
