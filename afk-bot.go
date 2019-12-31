@@ -67,7 +67,7 @@ func isExistMentions(u []*discordgo.User) bool {
 func isValidRequest(s *discordgo.User, connection *gorm.DB) bool {
 	var user []*db.User
 	t := time.Now()
-	afkCircleMinuteStr := os.Getenv("AFK_CICLE_MINUTES")
+	afkCircleMinuteStr := os.Getenv("AFK_CIRCLE_MINUTES")
 	afkCircleMinute, _ := strconv.Atoi(afkCircleMinuteStr)
 	afkCircleTime := t.Add(time.Duration(-1*afkCircleMinute) * time.Minute)
 
