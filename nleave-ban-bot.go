@@ -36,7 +36,10 @@ func main() {
 	fmt.Printf("count: %d", leaveMaxCount)
 
 	token := os.Getenv("NLEAVE_BAN_BOT_TOKEN")
-	_ = discord.StartJoinAndLeaveDiscordBot(onJoinMessageCreate, onLeaveMessageCreate, token)
+	error := discord.StartJoinAndLeaveDiscordBot(onJoinMessageCreate, onLeaveMessageCreate, token)
+	if error != nil {
+		fmt.Printf(" error %s", error)
+	}
 }
 
 func onJoinMessageCreate(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
