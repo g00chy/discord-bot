@@ -1,29 +1,115 @@
 package main
 
 import (
+	"discord-bot/lib/db"
 	"discord-bot/lib/discord"
 	"discord-bot/lib/dotenv"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"github.com/jinzhu/gorm"
 	"os"
-	"time"
+	"strconv"
+)
+
+const eventTypeJoin = 1  // joinイベント
+const eventTypeLeave = 2 //leaveイベント
+type eventType struct {
+	eventType int
+	user      discordgo.User
+	guildId   string
+}
+
+var (
+	session                           *discordgo.Session
+	announceChannel, announceCategory string
+	leaveMaxCount                     int
+	announceChannelDiscord            *discordgo.Channel
+	connection                        = db.ConnectDb()
 )
 
 func main() {
 	dotenv.EnvLoad()
+	announceCategory = os.Getenv("ANNOUNCE_CATEGORY")
+	announceChannel = os.Getenv("ANNOUNCE_CHANNEL")
+	countStr := os.Getenv("LEAVE_MAX_COUNT")
+	leaveMaxCount, _ = strconv.Atoi(countStr)
+	fmt.Printf("count: %d", leaveMaxCount)
+
 	token := os.Getenv("NLEAVE_BAN_BOT_TOKEN")
-	_ = discord.StartDiscordBot(onLeaveMessageCreate, token)
+	_ = discord.StartJoinAndLeaveDiscordBot(onJoinMessageCreate, onLeaveMessageCreate, token)
 }
 
-func onLeaveMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if discord.IsOwnMessage(s, m) {
+func onJoinMessageCreate(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
+	e := eventType{1, *m.User, m.GuildID}
+	setSendMessageChannel(s)
+	count(e)
+}
+func onLeaveMessageCreate(s *discordgo.Session, m *discordgo.GuildMemberRemove) {
+	e := eventType{2, *m.User, m.GuildID}
+	setSendMessageChannel(s)
+	count(e)
+}
+
+func setSendMessageChannel(s *discordgo.Session) {
+	session = s
+	ac, err := discord.GetFixChannel(s, announceCategory, announceChannel)
+	if err != nil {
 		return
 	}
-	channel, err := s.State.Channel(m.ChannelID)
-	if err != nil {
-		discord.SendMessage(s, channel, "エラーだよ")
+	announceChannelDiscord = ac
+}
+
+func count(event eventType) {
+
+	if event.eventType == 1 {
+		fmt.Printf("Join: ID:%s NAME:%s\r\n", event.user.ID, event.user.Username)
+	} else {
+		fmt.Printf("Remove: ID:%s NAME:%s\r\n", event.user.ID, event.user.Username)
 	}
 
-	fmt.Printf("%20s %20s %20s %20s %20s > %s\n", channel.ParentID, channel.Name, m.ChannelID,
-		time.Now().Format(time.Stamp), m.Author.Username, m.Content)
+	var userJoin []*db.UserJoin
+	connection.Where("user_id = ?", event.user.ID).First(&userJoin)
+
+	if len(userJoin) == 0 {
+		if event.eventType == eventTypeJoin {
+			message := fmt.Sprintf("はじめまして。 %s 本サーバーは3回抜けるとBANになります。ご注意ください。",
+				event.user.Mention())
+			discord.SendMessage(session, announceChannelDiscord, message)
+		}
+		createUserJoin(event, connection)
+		return
+	}
+	if event.eventType == eventTypeJoin {
+		message := fmt.Sprintf("%s 今までのサーバー離脱回数:%d あと%d回サーバーから抜けるとBANになります。",
+			event.user.Mention(),
+			userJoin[0].LeaveCount, leaveMaxCount-userJoin[0].LeaveCount)
+		discord.SendMessage(session, announceChannelDiscord, message)
+		joinCount := userJoin[0].JoinCount
+		connection.Model(userJoin).Update(db.UserJoin{JoinCount: joinCount + 1})
+	} else {
+		leaveCount := userJoin[0].JoinCount
+		connection.Model(userJoin).Update(db.UserJoin{LeaveCount: leaveCount + 1})
+		userJoin[0].LeaveCount = leaveCount + 1
+	}
+
+	if userJoin[0].LeaveCount >= leaveMaxCount {
+		userBan(event)
+	}
+}
+
+func createUserJoin(e eventType, connection *gorm.DB) {
+	if e.eventType == eventTypeJoin {
+		connection.Create(&db.UserJoin{UserId: e.user.ID, UserName: e.user.Username, JoinCount: 1})
+	} else {
+		connection.Create(&db.UserJoin{UserId: e.user.ID, UserName: e.user.Username, LeaveCount: 1})
+	}
+}
+
+func userBan(e eventType) {
+	error := session.GuildBanCreateWithReason(e.guildId, e.user.ID, "サーバー上限離脱回数を超えました。", 0)
+	if error != nil {
+		discord.SendMessage(session, announceChannelDiscord, fmt.Sprintf("error %s", error))
+	}
+	discord.SendMessage(session, announceChannelDiscord,
+		fmt.Sprintf("%s は　サーバー上限離脱回数%dを超えたため、BANとなりました。", e.user.Username, leaveMaxCount))
 }

@@ -1,6 +1,8 @@
 package db
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+)
 
 type User struct {
 	gorm.Model
@@ -10,6 +12,8 @@ type User struct {
 
 type UserJoin struct {
 	gorm.Model
-	UserId string `gorm: "not null"`
-	Count  int    `gorm:"not null"`
+	UserId     string `gorm: "unique;not null"`
+	UserName   string `gorm:"not null"`
+	JoinCount  int    `gorm:"not null" sql:"DEFAULT:0"`
+	LeaveCount int    `gorm:"not null" sql:"DEFAULT:0"`
 }

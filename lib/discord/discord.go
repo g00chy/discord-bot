@@ -67,7 +67,7 @@ func GetChannel(s *discordgo.Session, m *discordgo.MessageCreate) *discordgo.Cha
 	return c
 }
 
-func getCategoriesChannel(s *discordgo.Session, m *discordgo.MessageCreate) {
+func getCategoriesChannel(s *discordgo.Session) {
 	categories = []Category{}
 	channels = Channels{}
 	for _, guild := range s.State.Guilds {
@@ -94,8 +94,8 @@ func getCategoriesChannel(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-func GetFixChannel(s *discordgo.Session, m *discordgo.MessageCreate, category string, channel string) (*discordgo.Channel, error) {
-	getCategoriesChannel(s, m)
+func GetFixChannel(s *discordgo.Session, category string, channel string) (*discordgo.Channel, error) {
+	getCategoriesChannel(s)
 	sort.Slice(channels, func(i, j int) bool { return channels[i].BaseChannel.ID < channels[j].BaseChannel.ID })
 	c := sort.Search(len(channels), func(i int) bool {
 		return channels[i].Category.Name == category && channels[i].BaseChannel.Name == channel
@@ -119,6 +119,33 @@ func StartDiscordBot(onMessageCreate func(s *discordgo.Session, m *discordgo.Mes
 	discord.Token = Token
 
 	discord.AddHandler(onMessageCreate)
+	err = discord.Open()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	fmt.Println("Listening...")
+	<-stopBot
+	return nil
+}
+
+func StartJoinAndLeaveDiscordBot(
+	onJoinCreate func(s *discordgo.Session, m *discordgo.GuildMemberAdd),
+	onLeaveCreate func(s *discordgo.Session, m *discordgo.GuildMemberRemove),
+	token string) error {
+
+	Token = Token + " " + token
+	discord, err := discordgo.New()
+	if err != nil {
+		fmt.Println("Error logging in")
+		fmt.Println(err)
+		return err
+	}
+	discord.Token = Token
+
+	discord.AddHandler(onJoinCreate)
+	discord.AddHandler(onLeaveCreate)
 	err = discord.Open()
 	if err != nil {
 		fmt.Println(err)
