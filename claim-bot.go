@@ -29,7 +29,7 @@ func onClaimMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	cCategory := os.Getenv("ADMIN_CATEGORY")
 	cChannel := os.Getenv("ADMIN_CLAIM_CHANNEL")
-	claimChannel, err := discord.GetFixChannel(s, m, cCategory, cChannel)
+	claimChannel, err := discord.GetFixChannel(s, cCategory, cChannel)
 	if err != nil {
 		discord.SendMessage(s, channel, "エラーだよ")
 	}
