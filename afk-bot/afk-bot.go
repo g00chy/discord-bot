@@ -47,9 +47,8 @@ func afk(s *discordgo.Session, m *discordgo.MessageCreate) {
 		discord.SendMessage(s, discord.GetChannel(s, m), "コマンドが違うぞ。")
 		return
 	}
-	var member = m.Author
-	fmt.Printf("member %s", member.ID)
-	if isValidRequest(member, connection) {
+	var member = discord.GetMemberId(m.Mentions)
+	if isValidRequest(m.Author, connection) {
 		goAfk(s, m, member)
 	} else {
 		discord.SendMessage(s, discord.GetChannel(s, m), os.Getenv("ERROR_IMG"))
