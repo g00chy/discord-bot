@@ -20,17 +20,15 @@ type eventType struct {
 }
 
 var (
-	session                           *discordgo.Session
-	announceChannel, announceCategory string
-	leaveMaxCount                     int
-	announceChannelDiscord            *discordgo.Channel
-	connection                        = db.ConnectDb()
+	session                *discordgo.Session
+	leaveMaxCount          int
+	announceChannelDiscord *discordgo.Channel
+	connection             = db.ConnectDb()
 )
 
 func main() {
 	dotenv.EnvLoad()
-	announceCategory = os.Getenv("ANNOUNCE_CATEGORY")
-	announceChannel = os.Getenv("ANNOUNCE_CHANNEL")
+
 	countStr := os.Getenv("LEAVE_MAX_COUNT")
 	leaveMaxCount, _ = strconv.Atoi(countStr)
 	fmt.Printf("count: %d", leaveMaxCount)
@@ -55,6 +53,9 @@ func onLeaveMessageCreate(s *discordgo.Session, m *discordgo.GuildMemberRemove) 
 
 func setSendMessageChannel(s *discordgo.Session) {
 	session = s
+	announceCategory := os.Getenv("ANNOUNCE_CATEGORY")
+	announceChannel := os.Getenv("ANNOUNCE_CHANNEL")
+
 	ac, err := discord.GetFixChannel(s, announceCategory, announceChannel)
 	if err != nil {
 		return

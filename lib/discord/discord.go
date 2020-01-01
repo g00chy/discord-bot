@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"log"
-	"sort"
 )
 
 var (
@@ -96,14 +95,16 @@ func getCategoriesChannel(s *discordgo.Session) {
 
 func GetFixChannel(s *discordgo.Session, category string, channel string) (*discordgo.Channel, error) {
 	getCategoriesChannel(s)
-	sort.Slice(channels, func(i, j int) bool { return channels[i].BaseChannel.ID < channels[j].BaseChannel.ID })
-	c := sort.Search(len(channels), func(i int) bool {
-		return channels[i].Category.Name == category && channels[i].BaseChannel.Name == channel
-	})
-	if len(channels) <= c {
+	var ctmp Channel
+	for _, c := range channels {
+		if c.BaseChannel.Name == channel && c.Category.Name == category {
+			ctmp = c
+		}
+	}
+	if ctmp.BaseChannel.ID == "" {
 		return nil, errors.New("見つかりませんでした。")
 	}
-	sendChannel, _ := s.State.Channel(channels[c].BaseChannel.ID)
+	sendChannel, _ := s.State.Channel(ctmp.BaseChannel.ID)
 	return sendChannel, nil
 }
 
