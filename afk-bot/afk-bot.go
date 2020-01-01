@@ -48,8 +48,7 @@ func afk(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 	var member = discord.GetMemberId(m.Mentions)
-	fmt.Printf("member %s", member.ID)
-	if isValidRequest(member, connection) {
+	if isValidRequest(m.Author, connection) {
 		goAfk(s, m, member)
 	} else {
 		discord.SendMessage(s, discord.GetChannel(s, m), os.Getenv("ERROR_IMG"))
