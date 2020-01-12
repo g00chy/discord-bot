@@ -1,4 +1,4 @@
-package main
+package claim_bot
 
 import (
 	"discord-bot/lib/discord"
@@ -10,13 +10,12 @@ import (
 	"time"
 )
 
-func main() {
+func Main() {
 	dotenv.EnvLoad()
-	token := os.Getenv("CLAIM_BOT_TOKEN")
-	_ = discord.StartDiscordBot(onClaimMessageCreate, token)
+	discord.AddHandler(onMessageCreate)
 }
 
-func onClaimMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if discord.IsOwnMessage(s, m) {
 		return
 	}

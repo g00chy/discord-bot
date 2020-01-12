@@ -8,8 +8,10 @@ import (
 )
 
 var (
-	Token   = "Bot"
-	stopBot = make(chan bool)
+	Token       = "Bot"
+	Discord     = discordgo.Session{}
+	handlerList []interface{}
+	stopBot     = make(chan bool)
 )
 
 type BaseChannel struct {
@@ -108,54 +110,42 @@ func GetFixChannel(s *discordgo.Session, category string, channel string) (*disc
 	return sendChannel, nil
 }
 
-func StartDiscordBot(onMessageCreate func(s *discordgo.Session, m *discordgo.MessageCreate), token string) error {
+func SetUpDiscordBot(token string) error {
 
 	Token = Token + " " + token
-	discord, err := discordgo.New()
+	Discord, err := discordgo.New()
 	if err != nil {
 		fmt.Println("Error logging in")
 		fmt.Println(err)
 		return err
 	}
-	discord.Token = Token
+	Discord.Token = Token
 
-	discord.AddHandler(onMessageCreate)
-	err = discord.Open()
+	err = Discord.Open()
 	if err != nil {
+		fmt.Println("openError")
 		fmt.Println(err)
 		return err
 	}
+	for _, handler := range handlerList {
+		Discord.AddHandler(handler)
+	}
 
 	fmt.Println("Listening...")
+
 	<-stopBot
 	return nil
 }
 
-func StartJoinAndLeaveDiscordBot(
+func AddHandler(onMessageCreate func(s *discordgo.Session, m *discordgo.MessageCreate)) {
+	handlerList = append(handlerList, onMessageCreate)
+}
+
+func AddHandlerJoinAndLeave(
 	onJoinCreate func(s *discordgo.Session, m *discordgo.GuildMemberAdd),
-	onLeaveCreate func(s *discordgo.Session, m *discordgo.GuildMemberRemove),
-	token string) error {
-
-	Token = Token + " " + token
-	discord, err := discordgo.New()
-	if err != nil {
-		fmt.Println("Error logging in")
-		fmt.Println(err)
-		return err
-	}
-	discord.Token = Token
-
-	discord.AddHandler(onJoinCreate)
-	discord.AddHandler(onLeaveCreate)
-	err = discord.Open()
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	fmt.Println("Listening...")
-	<-stopBot
-	return nil
+	onLeaveCreate func(s *discordgo.Session, m *discordgo.GuildMemberRemove)) {
+	handlerList = append(handlerList, onJoinCreate)
+	handlerList = append(handlerList, onLeaveCreate)
 }
 
 func GetMemberId(u []*discordgo.User) *discordgo.User {

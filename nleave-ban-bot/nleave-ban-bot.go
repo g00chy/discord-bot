@@ -1,9 +1,8 @@
-package main
+package nleave_ban_bot
 
 import (
 	"discord-bot/lib/db"
 	"discord-bot/lib/discord"
-	"discord-bot/lib/dotenv"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/jinzhu/gorm"
@@ -26,18 +25,12 @@ var (
 	connection             = db.ConnectDb()
 )
 
-func main() {
-	dotenv.EnvLoad()
+func Main() {
 
 	countStr := os.Getenv("LEAVE_MAX_COUNT")
 	leaveMaxCount, _ = strconv.Atoi(countStr)
 	fmt.Printf("count: %d", leaveMaxCount)
-
-	token := os.Getenv("NLEAVE_BAN_BOT_TOKEN")
-	error := discord.StartJoinAndLeaveDiscordBot(onJoinMessageCreate, onLeaveMessageCreate, token)
-	if error != nil {
-		fmt.Printf(" error %s", error)
-	}
+	discord.AddHandlerJoinAndLeave(onJoinMessageCreate, onLeaveMessageCreate)
 }
 
 func onJoinMessageCreate(s *discordgo.Session, m *discordgo.GuildMemberAdd) {

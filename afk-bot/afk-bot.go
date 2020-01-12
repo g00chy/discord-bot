@@ -1,4 +1,4 @@
-package main
+package afk_bot
 
 import (
 	"discord-bot/lib/db"
@@ -14,13 +14,12 @@ import (
 	"time"
 )
 
-func main() {
+func Main() {
 	dotenv.EnvLoad()
-	token := os.Getenv("AFK_BOT_TOKEN")
-	_ = discord.StartDiscordBot(onAfkMessageCreate, token)
+	discord.AddHandler(onMessageCreate)
 }
 
-func onAfkMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if discord.IsOwnMessage(s, m) {
 		return
 	}
