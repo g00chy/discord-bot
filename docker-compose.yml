@@ -12,13 +12,28 @@ services:
     depends_on:
       - postgres
 
-  build_go:
+  build_arm:
     build:
       context: ./docker/armgo
-    entrypoint: sh ./build/make.sh
+    entrypoint: sh ./build/make_arm.sh
     volumes:
       - "./:/src"
     working_dir: /src
+  build_arm64:
+    build:
+      context: ./docker/armgo
+    entrypoint: sh ./build/make_arm64.sh
+    volumes:
+      - "./:/src"
+    working_dir: /src
+  build_amd64:
+    build:
+      context: ./docker/armgo
+    entrypoint: sh ./build/make_amd64.sh
+    volumes:
+      - "./:/src"
+    working_dir: /src
+
 
   afk_bot:
     <<: *go
