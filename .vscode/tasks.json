@@ -6,7 +6,7 @@
         {
             "label": "build on windows",
             "type": "shell",
-            "command": ".\\.vscode\\build.ps1",
+            "command": ".\\build\\build.ps1",
             "isShellCommand": true,
         }
     ]

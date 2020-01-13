@@ -2,12 +2,12 @@ FROM golang
 
 RUN dpkg --add-architecture armhf
 
-RUN echo "deb http://emdebian.org/tools/debian/ jessie main" >> /etc/apt/sources.list && \
-    dpkg --add-architecture armhf && \
-    curl http://emdebian.org/tools/debian/emdebian-toolchain-archive.key | apt-key add -
-RUN echo "deb http://emdebian.org/tools/debian/ jessie main"
-RUN apt-get update && \
-    apt-get install -y crossbuild-essential-armhf qemu-user-static binfmt-support && \
+#RUN echo "deb http://emdebian.org/tools/debian/ jessie main" >> /etc/apt/sources.list && \
+#    dpkg --add-architecture armhf && \
+#    curl http://emdebian.org/tools/debian/emdebian-toolchain-archive.key | apt-key add -
+#RUN echo "deb http://emdebian.org/tools/debian/ jessie main"
+RUN apt update && \
+    apt install -y build-essential  g++-arm-linux-gnueabihf && \
     rm -rf /var/lib/apt/lists/*
 
 ENV CC arm-linux-gnueabihf-gcc

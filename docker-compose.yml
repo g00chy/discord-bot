@@ -12,10 +12,10 @@ services:
     depends_on:
       - postgres
 
-  build_arm:
+  build_go:
     build:
       context: ./docker/armgo
-    entrypoint: go build main.go
+    entrypoint: sh ./build/make.sh
     volumes:
       - "./:/src"
     working_dir: /src
