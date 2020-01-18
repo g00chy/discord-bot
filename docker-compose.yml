@@ -33,8 +33,6 @@ services:
     volumes:
       - "./:/src"
     working_dir: /src
-
-
   afk_bot:
     <<: *go
     entrypoint: go run afk-bot/afk-bot.go
@@ -44,13 +42,6 @@ services:
   nleave_ban_bot:
     <<: *go
     entrypoint: go run nleave-ban-bot/nleave-ban-bot.go
-
-  postgres:
-    image: postgres:11-alpine
-    restart: always
-    env_file: .env
-    volumes:
-      - "db-data:/var/lib/postgresql/data"
 
 volumes:
   db-data:
