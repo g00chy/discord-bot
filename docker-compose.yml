@@ -7,11 +7,6 @@ services:
     volumes:
       - "./:/src"
     working_dir: /src
-    links:
-      - postgres
-    depends_on:
-      - postgres
-
   build_arm:
     build:
       context: ./docker/armgo
