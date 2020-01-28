@@ -1,15 +1,16 @@
-package claim_bot
+package claim
 
 import (
 	"discord-bot/lib/discord"
 	"discord-bot/lib/dotenv"
 	"fmt"
-	"github.com/bwmarrin/discordgo"
 	"log"
 	"os"
-	"time"
+
+	"github.com/bwmarrin/discordgo"
 )
 
+// Main Main処理
 func Main() {
 	dotenv.EnvLoad()
 	discord.AddHandler(onMessageCreate)
@@ -23,8 +24,6 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if err != nil {
 		discord.SendMessage(s, channel, "エラーだよ")
 	}
-
-	fmt.Printf("%20s %20s %20s %20s %20s > %s\n", channel.ParentID, channel.Name, m.ChannelID, time.Now().Format(time.Stamp), m.Author.Username, m.Content)
 
 	cCategory := os.Getenv("ADMIN_CATEGORY")
 	cChannel := os.Getenv("ADMIN_CLAIM_CHANNEL")

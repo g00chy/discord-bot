@@ -1,19 +1,20 @@
-package afk_bot
+package afk
 
 import (
 	"discord-bot/lib/db"
 	"discord-bot/lib/discord"
 	"discord-bot/lib/dotenv"
 	"fmt"
-	"github.com/bwmarrin/discordgo"
-	"github.com/jinzhu/gorm"
-	"log"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/jinzhu/gorm"
 )
 
+// Main main
 func Main() {
 	dotenv.EnvLoad()
 	discord.AddHandler(onMessageCreate)
@@ -23,16 +24,6 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if discord.IsOwnMessage(s, m) {
 		return
 	}
-
-	c, err := s.State.Channel(m.ChannelID)
-
-	if err != nil {
-		log.Println("Error getting channel: ", err)
-		return
-	}
-
-	var channel = discord.GetChannel(s, m)
-	fmt.Printf("%20s %20s %20s %20s %20s > %s\n", channel.ParentID, c.Name, m.ChannelID, time.Now().Format(time.Stamp), m.Author.Username, m.Content)
 
 	if strings.HasPrefix(m.Content, fmt.Sprintf("%s", "!afk")) {
 		afk(s, m)
