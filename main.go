@@ -5,7 +5,7 @@ import (
 	"discord-bot/bots/claim"
 	"discord-bot/bots/logging"
 	"discord-bot/bots/nleaveban"
-	. "discord-bot/lib/discord"
+	"discord-bot/lib/discord"
 	"discord-bot/lib/dotenv"
 	"os"
 )
@@ -18,5 +18,5 @@ func main() {
 	nleaveban.Main()
 	logging.Main()
 
-	SetUpDiscordBot(token)
+	discord.SetUpDiscordBot(token)
 }
