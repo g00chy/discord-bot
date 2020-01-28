@@ -1,4 +1,4 @@
-package nleave_ban_bot
+package nleaveban
 
 import (
 	"discord-bot/lib/db"
@@ -15,7 +15,7 @@ const eventTypeLeave = 2 //leaveイベント
 type eventType struct {
 	eventType int
 	user      discordgo.User
-	guildId   string
+	GuildID   string
 }
 
 var (
@@ -25,6 +25,7 @@ var (
 	connection             = db.ConnectDb()
 )
 
+// Main main
 func Main() {
 
 	countStr := os.Getenv("LEAVE_MAX_COUNT")
@@ -103,7 +104,7 @@ func createUserJoin(e eventType, connection *gorm.DB) {
 }
 
 func userBan(e eventType) {
-	error := session.GuildBanCreateWithReason(e.guildId, e.user.ID, "サーバー上限離脱回数を超えました。", 0)
+	error := session.GuildBanCreateWithReason(e.GuildID, e.user.ID, "サーバー上限離脱回数を超えました。", 0)
 	if error != nil {
 		discord.SendMessage(session, announceChannelDiscord, fmt.Sprintf("error %s", error))
 	}
