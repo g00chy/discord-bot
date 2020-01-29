@@ -63,7 +63,7 @@ func isValidRequest(s *discordgo.User, connection *gorm.DB) bool {
 	connection.Where("user_id = ? AND created_at >= ?", s.ID, afkCircleTime).Find(&user)
 	countStr := os.Getenv("AFK_MAX_COUNT")
 	count, _ := strconv.Atoi(countStr)
-	fmt.Printf("count: %d", count)
+	fmt.Println("count:", count)
 	if len(user) >= count {
 		return false
 	}
@@ -76,7 +76,7 @@ func isValidRequest(s *discordgo.User, connection *gorm.DB) bool {
 
 func createRequestRecord(connection *gorm.DB, user *discordgo.User) {
 	fmt.Printf("%s, %s", user.ID, user.Username)
-	connection.Create(&db.User{UserId: user.ID, UserName: user.Username})
+	connection.Create(&db.User{UserID: user.ID, UserName: user.Username})
 }
 
 func goAfk(s *discordgo.Session, m *discordgo.MessageCreate, member *discordgo.User) {
