@@ -97,9 +97,9 @@ func count(event eventType) {
 
 func createUserJoin(e eventType, connection *gorm.DB) {
 	if e.eventType == eventTypeJoin {
-		connection.Create(&db.UserJoin{UserId: e.user.ID, UserName: e.user.Username, JoinCount: 1})
+		connection.Create(&db.UserJoin{UserID: e.user.ID, UserName: e.user.Username, JoinCount: 1})
 	} else {
-		connection.Create(&db.UserJoin{UserId: e.user.ID, UserName: e.user.Username, LeaveCount: 1})
+		connection.Create(&db.UserJoin{UserID: e.user.ID, UserName: e.user.Username, LeaveCount: 1})
 	}
 }
 
