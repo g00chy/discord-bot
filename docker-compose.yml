@@ -25,6 +25,13 @@ services:
     volumes:
       - "./:/src"
     working_dir: /src
+  yarn:
+    build:
+      context: ./docker/yarn
+    volumes:
+      - "./yarn:/app"
+      - "./templates:/templates"
+    working_dir: /app
 
 volumes:
   db-data:
