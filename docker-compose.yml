@@ -32,6 +32,8 @@ services:
       - "./yarn:/app"
       - "./templates:/templates"
     working_dir: /app
+    ports:
+      - "8080:8080"
 
 volumes:
   db-data:
