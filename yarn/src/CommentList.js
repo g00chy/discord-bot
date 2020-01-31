@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import ReactDOM from 'react-dom'
 
 class CommentList extends Component {
   constructor() {
@@ -46,7 +45,4 @@ class CommentList extends Component {
   }
 }
 
-ReactDOM.render(
-  <CommentList />,
-  document.getElementById('app')
-)
+export default CommentList;
