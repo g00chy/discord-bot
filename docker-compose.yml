@@ -1,42 +1,30 @@
-version: '3.7'
+version: "3.7"
 
 services:
   go: &go
     build:
-      context: ./docker/go
+      context: ./docker/armgo
     volumes:
       - "./:/src"
     working_dir: /src
   build_arm:
-    build:
-      context: ./docker/armgo
+    <<: *go
     entrypoint: sh ./build/make_arm.sh
     volumes:
       - "./:/src"
     working_dir: /src
   build_arm64:
-    build:
-      context: ./docker/armgo
+    <<: *go
     entrypoint: sh ./build/make_arm64.sh
     volumes:
       - "./:/src"
     working_dir: /src
   build_amd64:
-    build:
-      context: ./docker/armgo
+    <<: *go
     entrypoint: sh ./build/make_amd64.sh
     volumes:
       - "./:/src"
     working_dir: /src
-  afk_bot:
-    <<: *go
-    entrypoint: go run afk-bot/afk-bot.go
-  claim_bot:
-    <<: *go
-    entrypoint: go run claim-bot/claim-bot.go
-  nleave_ban_bot:
-    <<: *go
-    entrypoint: go run nleave-ban-bot/nleave-ban-bot.go
 
 volumes:
   db-data:
