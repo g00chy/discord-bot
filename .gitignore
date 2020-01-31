@@ -3,3 +3,4 @@
 *.iml
 /binary
 bot.db
+yarn/node_modules
