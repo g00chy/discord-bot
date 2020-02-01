@@ -32,11 +32,14 @@ services:
       - "./yarn:/app"
       - "./templates:/templates"
     working_dir: /app
+  yarn-install:
+    <<: *yarn
+    entrypoint: yarn install
   yarn-dev:
     <<: *yarn
     entrypoint: yarn start
     ports:
-      - "3000:3000"
+      - "3001:3001"
   yarn-build:
     <<: *yarn
     entrypoint: yarn build
