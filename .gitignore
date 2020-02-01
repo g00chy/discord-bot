@@ -3,6 +3,7 @@
 *.iml
 /binary
 bot.db
+.env
 yarn/node_modules
 bot/vendor/
 templates/

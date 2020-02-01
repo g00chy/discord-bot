@@ -7,27 +7,27 @@ services:
     volumes:
       - "./:/src"
     working_dir: /src
+    environment:
+      - uid=1000
+      - gid=1000
   build_arm:
     <<: *go
-    user: "${UID}:${GID}"
     entrypoint: sh ./build/make_arm.sh
     volumes:
       - "./:/src"
-    working_dir: /src
+    working_dir: /src/bot
   build_arm64:
     <<: *go
-    user: "${UID}:${GID}"
     entrypoint: sh ./build/make_arm64.sh
     volumes:
       - "./:/src"
-    working_dir: /src
+    working_dir: /src/bot
   build_amd64:
     <<: *go
-    user: "${UID}:${GID}"
     entrypoint: sh ./build/make_amd64.sh
     volumes:
       - "./:/src"
-    working_dir: /src
+    working_dir: /src/bot
   yarn: &yarn
     build:
       context: ./docker/yarn
