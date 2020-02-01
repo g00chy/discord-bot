@@ -39,7 +39,7 @@ services:
     <<: *yarn
     entrypoint: yarn start
     ports:
-      - "3001:3001"
+      - "3001:3000"
   yarn-build:
     <<: *yarn
     entrypoint: yarn build
