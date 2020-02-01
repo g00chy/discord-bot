@@ -4,4 +4,5 @@
 /binary
 bot.db
 yarn/node_modules
-/vendor
+bot/vendor/
+templates/
