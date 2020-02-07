@@ -12,5 +12,4 @@ RUN apt update && \
    gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf \
    gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
    && \
-   rm -rf /var/lib/apt/lists/* && \
-   chmod 777 -R /.cache
+   rm -rf /var/lib/apt/lists/*
