@@ -19,15 +19,12 @@ services:
   build_arm:
     <<: *go
     entrypoint: sh ./build/make_arm.sh
-    working_dir: /src/bot
   build_arm64:
     <<: *go
     entrypoint: sh ./build/make_arm64.sh
-    working_dir: /src/bot
   build_amd64:
     <<: *go
     entrypoint: sh ./build/make_amd64.sh
-    working_dir: /src/bot
   yarn: &yarn
     build:
       context: ./docker/yarn
