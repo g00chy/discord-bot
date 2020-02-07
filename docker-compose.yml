@@ -6,27 +6,27 @@ services:
       context: ./docker/armgo
     volumes:
       - "./:/src"
-    working_dir: /src
+      - "go-cache:/.cache"
+    working_dir: /src/bot
     environment:
       - uid=1000
       - gid=1000
+  go_web:
+    <<: *go
+    entrypoint: go run web/web.go
+    ports:
+     - "8888:8080"
   build_arm:
     <<: *go
     entrypoint: sh ./build/make_arm.sh
-    volumes:
-      - "./:/src"
     working_dir: /src/bot
   build_arm64:
     <<: *go
     entrypoint: sh ./build/make_arm64.sh
-    volumes:
-      - "./:/src"
     working_dir: /src/bot
   build_amd64:
     <<: *go
     entrypoint: sh ./build/make_amd64.sh
-    volumes:
-      - "./:/src"
     working_dir: /src/bot
   yarn: &yarn
     build:
@@ -50,3 +50,4 @@ services:
 volumes:
   db-data:
     driver: local
+  go-cache:
