@@ -3,4 +3,5 @@
 *.iml
 /binary
 bot.db
+bot/vendor
 yarn/node_modules
