@@ -4,6 +4,7 @@ import (
 	"discord-bot/lib/dotenv"
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
+	"os"
 )
 
 func ConnectDb() *gorm.DB {
@@ -13,6 +14,13 @@ func ConnectDb() *gorm.DB {
 	if err != nil {
 		panic("データベースへの接続に失敗しました")
 	}
+
+	var logMode = os.Getenv("SQL_DEBUG")
+	var isLogged = false
+	if logMode == "true" {
+		isLogged = true
+	}
+	db.LogMode(isLogged)
 
 	// スキーマのマイグレーション
 	db.AutoMigrate(&User{})

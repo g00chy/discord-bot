@@ -1,8 +1,7 @@
 .env
 .idea
 *.iml
-/binary
+bot/binary/*
 bot.db
-bot/vendor
-bot/binary
 yarn/node_modules
+bot/vendor/

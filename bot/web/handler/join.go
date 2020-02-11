@@ -2,7 +2,6 @@ package handler
 
 import (
 	"discord-bot/lib/db"
-
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -10,10 +9,10 @@ import (
 func GetJoinUserData() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		var userJoin []*db.UserJoin
-		connection.Model(userJoin).Order("created_at asc").Find(&userJoin)
+		var join []*db.UserJoin
+		connection.Model(join).Order("created_at asc").Find(&join)
 
-		c.JSON(http.StatusOK, userJoin)
+		c.JSON(http.StatusOK, join)
 
 	}
 }
