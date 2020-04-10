@@ -25,24 +25,6 @@ services:
   build_amd64:
     <<: *go
     entrypoint: sh ./build/make_amd64.sh
-  yarn: &yarn
-    build:
-      context: ./docker/yarn
-    volumes:
-      - "./yarn:/app"
-      - "./templates:/templates"
-    working_dir: /app
-  yarn-install:
-    <<: *yarn
-    entrypoint: yarn install
-  yarn-dev:
-    <<: *yarn
-    entrypoint: yarn start
-    ports:
-      - "3001:3000"
-  yarn-build:
-    <<: *yarn
-    entrypoint: yarn build
 
 volumes:
   db-data:
