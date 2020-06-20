@@ -11,11 +11,6 @@ services:
     environment:
       - uid=1000
       - gid=1000
-  go_web:
-    <<: *go
-    entrypoint: go run web/web.go
-    ports:
-     - "8888:8080"
   build_arm:
     <<: *go
     entrypoint: sh ./build/make_arm.sh
