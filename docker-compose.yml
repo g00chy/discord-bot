@@ -22,6 +22,4 @@ services:
     entrypoint: sh ./build/make_amd64.sh
 
 volumes:
-  db-data:
-    driver: local
   go-cache:
