@@ -1,11 +1,10 @@
 # これはなに
 
-Discordのサーバーで動作するBOTのソースコード
-[wiki](wiki)
+Discordbotのサーバーで動作するBOTのソースコード
 
-API:
-host:8888<->docker:8080
-
-/ping : pingpong
-/user_join : join&leave
-/user: afkcall users
+- AFK
+  - !afk @usernameとすると、AFKチャンネルへユーザを移動
+- Claim
+  - BOTに対して発言すると、指定チャンネルに対してメッセージを送付
+- nLeaveBan
+  - n回抜けたらBANにする
