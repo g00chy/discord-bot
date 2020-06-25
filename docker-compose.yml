@@ -2,24 +2,20 @@ version: "3.7"
 
 services:
   go: &go
-    build:
-      context: ./docker/armgo
+    image: alpine
     volumes:
-      - "./:/src"
-      - "go-cache:/.cache"
-    working_dir: /src/bot
-    environment:
-      - uid=1000
-      - gid=1000
-  build_arm:
+      - "./:/bot"
+    working_dir: /bot
+  go_bot:
     <<: *go
-    entrypoint: sh ./build/make_arm.sh
-  build_arm64:
+    entrypoint: ./discord-bot
+    restart: always
+  go_web:
     <<: *go
-    entrypoint: sh ./build/make_arm64.sh
-  build_amd64:
-    <<: *go
-    entrypoint: sh ./build/make_amd64.sh
+    entrypoint: ./discord-web
+    restart: always
+    ports:
+      - 80:80
 
 volumes:
   go-cache:
