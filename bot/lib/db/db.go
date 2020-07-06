@@ -2,6 +2,7 @@ package db
 
 import (
 	"discord-bot/lib/dotenv"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
 	"os"
@@ -12,7 +13,7 @@ func ConnectDb() *gorm.DB {
 
 	db, err := gorm.Open("sqlite3", "bot.db")
 	if err != nil {
-		panic("データベースへの接続に失敗しました")
+		panic(fmt.Errorf("DB接続に失敗しました %s", err))
 	}
 
 	var logMode = os.Getenv("SQL_DEBUG")
