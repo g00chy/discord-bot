@@ -8,28 +8,29 @@ services:
       - "./:/src"
       - "go-cache:/go"
     working_dir: /src/bot
-    environment:
-      - uid=1000
-      - gid=1000
-      - CGO_ENABLED=1
-      - GOOS=linux
   build_arm:
     <<: *go
-    entrypoint: sh build/make.sh
+    entrypoint: build/make.sh
     environment:
       - CC=arm-linux-gnueabi-gcc
       - GOARCH=arm
+    env_file:
+      - .build.env
   build_arm64:
     <<: *go
-    entrypoint: sh build/make.sh
+    entrypoint: build/make.sh
     environment:
       - CC=aarch64-linux-gnu-gcc
       - GOARCH=arm64
+    env_file:
+      - .build.env
   build_amd64:
     <<: *go
-    entrypoint: sh build/make.sh
+    entrypoint: build/make.sh
     environment:
       - GOARCH=amd64
+    env_file:
+      - .build.env
 
 volumes:
   go-cache:
