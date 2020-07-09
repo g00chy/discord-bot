@@ -4,6 +4,7 @@ import (
 	"discord-bot/bots/afk"
 	"discord-bot/bots/claim"
 	"discord-bot/bots/logging"
+	"discord-bot/bots/meem"
 	"discord-bot/lib/discord"
 	"discord-bot/lib/dotenv"
 	"os"
@@ -16,6 +17,7 @@ func main() {
 	afk.Main()
 	//nleaveban.Main()
 	logging.Main()
+	meem.Main()
 
-	discord.SetUpDiscordBot(token)
+	_ = discord.SetUpDiscordBot(token)
 }

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"log"
+	"os"
 )
 
 var (
 	Token       = "Bot"
-	Discord     = discordgo.Session{}
 	handlerList []interface{}
 	stopBot     = make(chan bool)
 )
@@ -28,8 +28,9 @@ type Channel struct {
 type Channels []Channel
 
 var (
-	categories []Category
-	channels   Channels
+	categories             []Category
+	channels               Channels
+	AnnounceChannelDiscord *discordgo.Channel
 )
 
 // Len, Less, Swapを定義
@@ -115,8 +116,8 @@ func SetUpDiscordBot(token string) error {
 	Token = Token + " " + token
 	Discord, err := discordgo.New()
 	if err != nil {
-		fmt.Println("Error logging in")
-		fmt.Println(err)
+		log.Println("Error logging in")
+		log.Println(err)
 		return err
 	}
 	Discord.Token = Token
@@ -148,6 +149,12 @@ func AddHandlerJoinAndLeave(
 	handlerList = append(handlerList, onLeaveCreate)
 }
 
+func AddHandlerMeem(onMeemCreate ...func(s *discordgo.Session, m *discordgo.MessageCreate)) {
+	for _, handler := range onMeemCreate {
+		handlerList = append(handlerList, handler)
+	}
+}
+
 func GetMemberId(u []*discordgo.User) *discordgo.User {
 	return u[len(u)-1]
 }
@@ -162,4 +169,29 @@ func ComesFromDM(s *discordgo.Session, m *discordgo.MessageCreate) (bool, error)
 	}
 
 	return channel.Type == discordgo.ChannelTypeDM, nil
+}
+
+func SetSendMessageChannel(s *discordgo.Session) {
+	announceCategory := os.Getenv("ANNOUNCE_CATEGORY")
+	announceChannel := os.Getenv("ANNOUNCE_CHANNEL")
+
+	ac, err := GetFixChannel(s, announceCategory, announceChannel)
+	if err != nil {
+		return
+	}
+	AnnounceChannelDiscord = ac
+}
+
+func IsExistMentions(u []*discordgo.User) bool {
+	if len(u) == 0 || len(u) > 1 {
+		return false
+	}
+	return true
+}
+
+func GetImage(m *discordgo.MessageCreate) (string, error) {
+	if len(m.Attachments) > 0 && len(m.Attachments[0].URL) > 0 {
+		return m.Attachments[0].URL, nil
+	}
+	return "", fmt.Errorf("%s", "対象となる画像がありません。")
 }

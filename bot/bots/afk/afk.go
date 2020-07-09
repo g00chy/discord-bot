@@ -5,6 +5,7 @@ import (
 	"discord-bot/lib/discord"
 	"discord-bot/lib/dotenv"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -33,7 +34,7 @@ func onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 func afk(s *discordgo.Session, m *discordgo.MessageCreate) {
 	connection := db.ConnectDb()
 
-	if !isExistMentions(m.Mentions) {
+	if !discord.IsExistMentions(m.Mentions) {
 		discord.SendMessage(s, discord.GetChannel(s, m), "コマンドが違うぞ。")
 		return
 	}
@@ -43,14 +44,6 @@ func afk(s *discordgo.Session, m *discordgo.MessageCreate) {
 	} else {
 		discord.SendMessage(s, discord.GetChannel(s, m), os.Getenv("ERROR_IMG"))
 	}
-
-}
-
-func isExistMentions(u []*discordgo.User) bool {
-	if len(u) == 0 || len(u) > 1 {
-		return false
-	}
-	return true
 }
 
 func isValidRequest(s *discordgo.User, connection *gorm.DB) bool {
@@ -63,7 +56,7 @@ func isValidRequest(s *discordgo.User, connection *gorm.DB) bool {
 	connection.Where("user_id = ? AND created_at >= ?", s.ID, afkCircleTime).Find(&user)
 	countStr := os.Getenv("AFK_MAX_COUNT")
 	count, _ := strconv.Atoi(countStr)
-	fmt.Println("count:", count)
+	log.Println("count:", count)
 	if len(user) >= count {
 		return false
 	}
@@ -75,7 +68,7 @@ func isValidRequest(s *discordgo.User, connection *gorm.DB) bool {
 }
 
 func createRequestRecord(connection *gorm.DB, user *discordgo.User) {
-	fmt.Printf("%s, %s", user.ID, user.Username)
+	log.Printf("%s, %s", user.ID, user.Username)
 	connection.Create(&db.User{UserID: user.ID, UserName: user.Username})
 }
 
