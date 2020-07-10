@@ -11,11 +11,11 @@ import (
 )
 
 type methodType struct {
-	methodType int
+	methodType string
 }
 
-const methodTypeAdd = 1
-const methodTypeGet = 2
+const methodTypeAdd = "add "
+const methodTypeGet = "get "
 
 var botPrefix string
 
@@ -29,17 +29,10 @@ func Main() {
 }
 
 func getMessageKeyword(m *discordgo.MessageCreate, t methodType) (string, error) {
-	var methodStr string
-	switch t.methodType {
-	case methodTypeAdd:
-		methodStr = "add "
-	case methodTypeGet:
-		methodStr = "get "
-	}
 
-	if strings.HasPrefix(m.Message.Content, botPrefix+methodStr) {
+	if strings.HasPrefix(m.Message.Content, botPrefix+t.methodType) {
 		keyword := strings.TrimSpace(m.Message.Content)
-		keyword = strings.Replace(keyword, botPrefix+methodStr, "", 1)
+		keyword = strings.Replace(keyword, botPrefix+t.methodType, "", 1)
 		keyword = strings.TrimSpace(keyword)
 		if len(keyword) == 0 {
 			return "", fmt.Errorf("not found keywrod")
@@ -49,15 +42,15 @@ func getMessageKeyword(m *discordgo.MessageCreate, t methodType) (string, error)
 	return "", fmt.Errorf("err %s", "not found keyword")
 }
 
-func isMeem(m *discordgo.MessageCreate) bool {
-	if strings.HasPrefix(m.Message.Content, botPrefix) {
+func isMeem(m *discordgo.MessageCreate, t methodType) bool {
+	if strings.HasPrefix(m.Message.Content, botPrefix+t.methodType) {
 		return true
 	}
 	return false
 }
 
 func onAddMeemMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if !isMeem(m) {
+	if !isMeem(m, methodType{methodTypeAdd}) {
 		return
 	}
 	if len(m.Attachments) == 0 {
@@ -72,7 +65,7 @@ func onAddMeemMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	addMeem(s, m, c)
 }
 func onMeemGetMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if !isMeem(m) {
+	if !isMeem(m, methodType{methodTypeGet}) {
 		return
 	}
 	c, err := s.State.Channel(m.ChannelID)
@@ -92,7 +85,7 @@ func addMeem(s *discordgo.Session, m *discordgo.MessageCreate, c *discordgo.Chan
 
 	keyword, err := getMessageKeyword(m, methodType{methodTypeAdd})
 	if err != nil {
-		discord.SendMessage(s, c, "キーワードが指定されてません。")
+		discord.SendMessage(s, c, "[add]キーワードが指定されてません。")
 		return
 	}
 
@@ -101,7 +94,8 @@ func addMeem(s *discordgo.Session, m *discordgo.MessageCreate, c *discordgo.Chan
 		discord.SendMessage(s, c, "画像URLを取得できませんでした")
 		return
 	}
-	connection.Create(&db.Meem{ServerID: m.GuildID, ChannelID: m.ChannelID, UserID: m.Author.ID, Keyword: keyword, Url: url})
+	var meem db.Meem
+	connection.Where(db.Meem{ServerID: m.GuildID, UserID: m.Author.ID, Keyword: keyword}).Assign(db.Meem{Url: url, ChannelID: m.ChannelID}).FirstOrCreate(&meem)
 
 	discord.SendMessage(s, c, "登録しました")
 }
@@ -113,11 +107,15 @@ func getMeem(s *discordgo.Session, m *discordgo.MessageCreate, c *discordgo.Chan
 	}
 	keyword, err := getMessageKeyword(m, methodType{methodTypeGet})
 	if err != nil {
-		discord.SendMessage(s, c, "キーワードが指定されてません。")
+		discord.SendMessage(s, c, "[get]キーワードが指定されてません。")
 		return
 	}
 
 	var meem []*db.Meem
-	connection.Select("Url").Where("keyword like ?", "%"+keyword+"%").First(&meem)
-	discord.SendMessage(s, c, meem[0].Url)
+	connection.Select("Url, Keyword").Where("keyword like ?", "%"+keyword+"%").First(&meem)
+
+	if len(meem) < 1 {
+		return
+	}
+	discord.SendMessage(s, c, meem[0].Keyword+" "+meem[0].Url)
 }
