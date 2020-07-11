@@ -60,6 +60,14 @@ func SendMessage(s *discordgo.Session, c *discordgo.Channel, msg string) {
 	}
 }
 
+func SendEmbedMessage(s *discordgo.Session, c *discordgo.Channel, embed *discordgo.MessageEmbed) {
+	_, err := s.ChannelMessageSendEmbed(c.ID, embed)
+
+	if err != nil {
+		log.Println("Error sending message: ", err)
+	}
+}
+
 func GetChannel(s *discordgo.Session, m *discordgo.MessageCreate) *discordgo.Channel {
 	c, err := s.State.Channel(m.ChannelID) //チャンネル取得
 	if err != nil {

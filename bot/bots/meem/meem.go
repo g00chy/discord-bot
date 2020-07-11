@@ -7,6 +7,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -16,6 +17,9 @@ type methodType struct {
 
 const methodTypeAdd = "add "
 const methodTypeGet = "get "
+const methodTypeList = "list"
+const methodTypeDelete = "delete "
+const meemPerPage = 10
 
 var botPrefix string
 
@@ -24,7 +28,7 @@ var (
 )
 
 func Main() {
-	discord.AddHandlerMeem(onAddMeemMessageCreate, onMeemGetMessageCreate)
+	discord.AddHandlerMeem(onAddMeemMessageCreate, onGetMeemMessageCreate, onGetListMessageCreate, onGetListMessageDelete)
 	botPrefix = os.Getenv("MEEM_PREFIX") + " "
 }
 
@@ -40,6 +44,35 @@ func getMessageKeyword(m *discordgo.MessageCreate, t methodType) (string, error)
 		return keyword, nil
 	}
 	return "", fmt.Errorf("err %s", "not found keyword")
+}
+
+func getListPage(m *discordgo.MessageCreate) (int, error) {
+	if strings.HasPrefix(m.Message.Content, botPrefix+methodTypeList) {
+		page := strings.TrimSpace(m.Message.Content)
+		page = strings.Replace(page, botPrefix+methodTypeList, "", 1)
+		pageNum, err := strconv.Atoi(strings.TrimSpace(page))
+		if err != nil {
+			return 1, nil
+		}
+		if pageNum < 1 {
+			return 1, nil
+		}
+		return pageNum, nil
+	}
+	return 1, fmt.Errorf("err %s", "not found page")
+}
+
+func getDeleteId(m *discordgo.MessageCreate) (int, error) {
+	if strings.HasPrefix(m.Message.Content, botPrefix+methodTypeDelete) {
+		id := strings.TrimSpace(m.Message.Content)
+		id = strings.Replace(id, botPrefix+methodTypeDelete, "", 1)
+		idNum, err := strconv.Atoi(strings.TrimSpace(id))
+		if err != nil {
+			return 0, nil
+		}
+		return idNum, nil
+	}
+	return 0, fmt.Errorf("err %s", "not found page")
 }
 
 func isMeem(m *discordgo.MessageCreate, t methodType) bool {
@@ -64,7 +97,7 @@ func onAddMeemMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	addMeem(s, m, c)
 }
-func onMeemGetMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+func onGetMeemMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if !isMeem(m, methodType{methodTypeGet}) {
 		return
 	}
@@ -75,6 +108,30 @@ func onMeemGetMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	getMeem(s, m, c)
+}
+func onGetListMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if !isMeem(m, methodType{methodTypeList}) {
+		return
+	}
+	c, err := s.State.Channel(m.ChannelID)
+	if err != nil {
+		log.Fatal("チャンネルを特定できませんでした")
+		return
+	}
+
+	getList(s, m, c)
+}
+func onGetListMessageDelete(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if !isMeem(m, methodType{methodTypeDelete}) {
+		return
+	}
+	c, err := s.State.Channel(m.ChannelID)
+	if err != nil {
+		log.Fatal("チャンネルを特定できませんでした")
+		return
+	}
+
+	deleteMeem(s, m, c)
 }
 
 //addMeem: meemを追加
@@ -111,11 +168,86 @@ func getMeem(s *discordgo.Session, m *discordgo.MessageCreate, c *discordgo.Chan
 		return
 	}
 
-	var meem []*db.Meem
+	var meem db.Meem
 	connection.Select("Url, Keyword").Where("keyword like ?", "%"+keyword+"%").First(&meem)
 
-	if len(meem) < 1 {
+	if meem.Keyword == "" {
 		return
 	}
-	discord.SendMessage(s, c, meem[0].Keyword+" "+meem[0].Url)
+	discord.SendMessage(s, c, meem.Keyword+" "+meem.Url)
+}
+
+//getDelete meemを削除
+
+func deleteMeem(s *discordgo.Session, m *discordgo.MessageCreate, c *discordgo.Channel) {
+	if discord.IsOwnMessage(s, m) {
+		return
+	}
+	id, err := getDeleteId(m)
+	if err != nil || id == 0 {
+		discord.SendMessage(s, c, "[delete]idが指定されていません。")
+		return
+	}
+
+	var meem db.Meem
+
+	tx := connection.Model(&db.Meem{}).Where(db.Meem{ServerID: m.GuildID, UserID: m.Author.ID}).Where(id)
+	var count int
+	tx.Count(&count)
+	tx.Find(&meem)
+	if count > 0 {
+		tx.Delete(meem)
+	} else {
+		discord.SendMessage(s, c, "[delete]削除対象のmeemはありません。")
+	}
+
+	embed := discord.NewEmbed().
+		SetTitle("削除に成功しました").
+		SetColor(0x00ff00).
+		AddField(strconv.FormatUint(uint64(id), 10), meem.Url)
+	discord.SendEmbedMessage(s, c, embed.MessageEmbed)
+}
+
+//getList: 登録しているmeem一覧の取得
+func getList(s *discordgo.Session, m *discordgo.MessageCreate, c *discordgo.Channel) {
+	if discord.IsOwnMessage(s, m) {
+		return
+	}
+	page, err := getListPage(m)
+	if err != nil {
+		discord.SendMessage(s, c, "[list]キーワードが指定されてません。")
+		return
+	}
+
+	var meems []*db.Meem
+	var count int
+	var totalPage int
+	tx := connection.Model(&db.Meem{}).Where(db.Meem{ServerID: m.GuildID, UserID: m.Author.ID})
+	tx.Count(&count)
+	tx.Select("id, url, keyword").Offset((page - 1) * meemPerPage).Limit(meemPerPage).Find(&meems)
+	log.Println(count, len(meems))
+	if count > 10 {
+		totalPage = count / meemPerPage
+	} else {
+		totalPage = 1
+	}
+	if len(meems) < 1 {
+		discord.SendMessage(s, c, "[list]meemは登録されていないみたいよ")
+
+		return
+	}
+	if totalPage > page {
+		discord.SendMessage(s, c, "[list]ページ数が超過しています")
+		return
+	}
+
+	embed := discord.NewEmbed().
+		SetTitle("あなたの登録しているMeem").
+		SetColor(0x00ff00)
+	for _, meem := range meems {
+		log.Print(meem.ID)
+		embed.AddField(strconv.FormatUint(uint64(meem.ID), 10)+":"+meem.Keyword, meem.Url)
+	}
+	embed.SetFooter("page " + strconv.Itoa(page) + " / " + strconv.Itoa(totalPage))
+	discord.SendEmbedMessage(s, c, embed.MessageEmbed)
 }

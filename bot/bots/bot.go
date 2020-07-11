@@ -12,7 +12,7 @@ import (
 
 func main() {
 	dotenv.EnvLoad()
-	token := os.Getenv("CLAIM_BOT_TOKEN")
+	token := os.Getenv("BOT_TOKEN")
 	claim.Main()
 	afk.Main()
 	//nleaveban.Main()
