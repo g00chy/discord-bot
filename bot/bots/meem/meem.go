@@ -226,7 +226,7 @@ func getList(s *discordgo.Session, m *discordgo.MessageCreate, c *discordgo.Chan
 	tx.Count(&count)
 	tx.Select("id, url, keyword").Offset((page - 1) * meemPerPage).Limit(meemPerPage).Find(&meems)
 	log.Println(count, len(meems))
-	if count > 10 {
+	if count > meemPerPage {
 		totalPage = count / meemPerPage
 	} else {
 		totalPage = 1
