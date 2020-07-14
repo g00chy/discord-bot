@@ -160,7 +160,7 @@ func getMeem(s *discordgo.Session, m *discordgo.MessageCreate, c *discordgo.Chan
 	}
 
 	var meem db.Meem
-	connection.Select("Url, Keyword").Where("keyword like ?", "%"+strings.TrimSpace(m.Message.Content)+"%").Order("keyword asc").First(&meem)
+	connection.Select("Url, Keyword").Where("keyword like ? and user_id = ?", "%"+strings.TrimSpace(m.Message.Content)+"%", m.Author.ID).Order("keyword asc").First(&meem)
 
 	if meem.Keyword == "" {
 		return
