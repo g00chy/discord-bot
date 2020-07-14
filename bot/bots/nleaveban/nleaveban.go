@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/jinzhu/gorm"
+	"log"
 	"os"
 	"strconv"
 )
 
-const eventTypeJoin = 1  // joinイベント
-const eventTypeLeave = 2 //leaveイベント
+const eventTypeJoin = 1 // joinイベント
+
 type eventType struct {
 	eventType int
 	user      discordgo.User
@@ -30,39 +31,27 @@ func Main() {
 
 	countStr := os.Getenv("LEAVE_MAX_COUNT")
 	leaveMaxCount, _ = strconv.Atoi(countStr)
-	fmt.Printf("count: %d", leaveMaxCount)
+	log.Printf("count: %d", leaveMaxCount)
 	discord.AddHandlerJoinAndLeave(onJoinMessageCreate, onLeaveMessageCreate)
 }
 
 func onJoinMessageCreate(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
 	e := eventType{1, *m.User, m.GuildID}
-	setSendMessageChannel(s)
+	discord.SetSendMessageChannel(s)
 	count(e)
 }
 func onLeaveMessageCreate(s *discordgo.Session, m *discordgo.GuildMemberRemove) {
 	e := eventType{2, *m.User, m.GuildID}
-	setSendMessageChannel(s)
+	discord.SetSendMessageChannel(s)
 	count(e)
-}
-
-func setSendMessageChannel(s *discordgo.Session) {
-	session = s
-	announceCategory := os.Getenv("ANNOUNCE_CATEGORY")
-	announceChannel := os.Getenv("ANNOUNCE_CHANNEL")
-
-	ac, err := discord.GetFixChannel(s, announceCategory, announceChannel)
-	if err != nil {
-		return
-	}
-	announceChannelDiscord = ac
 }
 
 func count(event eventType) {
 
 	if event.eventType == 1 {
-		fmt.Printf("Join: ID:%s NAME:%s\r\n", event.user.ID, event.user.Username)
+		log.Printf("Join: ID:%s NAME:%s\r\n", event.user.ID, event.user.Username)
 	} else {
-		fmt.Printf("Remove: ID:%s NAME:%s\r\n", event.user.ID, event.user.Username)
+		log.Printf("Remove: ID:%s NAME:%s\r\n", event.user.ID, event.user.Username)
 	}
 
 	var userJoin []*db.UserJoin
@@ -72,7 +61,7 @@ func count(event eventType) {
 		if event.eventType == eventTypeJoin {
 			message := fmt.Sprintf("はじめまして。 %s 本サーバーは3回抜けるとBANになります。ご注意ください。",
 				event.user.Mention())
-			discord.SendMessage(session, announceChannelDiscord, message)
+			discord.SendMessage(session, discord.AnnounceChannelDiscord, message)
 		}
 		createUserJoin(event, connection)
 		return

@@ -26,6 +26,7 @@ func ConnectDb() *gorm.DB {
 	// スキーマのマイグレーション
 	db.AutoMigrate(&User{})
 	db.AutoMigrate(&UserJoin{})
+	db.AutoMigrate(&Meem{})
 
 	return db
 }
