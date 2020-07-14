@@ -218,7 +218,7 @@ func getList(s *discordgo.Session, m *discordgo.MessageCreate, c *discordgo.Chan
 	tx.Select("id, url, keyword").Offset((page - 1) * meemPerPage).Limit(meemPerPage).Find(&meems)
 	log.Println(count, len(meems))
 	if count > meemPerPage {
-		totalPage = count / meemPerPage
+		totalPage = (count / meemPerPage) + 1
 	} else {
 		totalPage = 1
 	}
@@ -227,7 +227,7 @@ func getList(s *discordgo.Session, m *discordgo.MessageCreate, c *discordgo.Chan
 
 		return
 	}
-	if totalPage > page {
+	if totalPage < page {
 		discord.SendMessage(s, c, "[list]ページ数が超過しています")
 		return
 	}
