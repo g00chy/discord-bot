@@ -16,7 +16,6 @@ type methodType struct {
 }
 
 const methodTypeAdd = "add "
-const methodTypeGet = "get "
 const methodTypeList = "list"
 const methodTypeDelete = "delete "
 const meemPerPage = 10
@@ -98,9 +97,6 @@ func onAddMeemMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	addMeem(s, m, c)
 }
 func onGetMeemMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if !isMeem(m, methodType{methodTypeGet}) {
-		return
-	}
 	c, err := s.State.Channel(m.ChannelID)
 	if err != nil {
 		log.Fatal("チャンネルを特定できませんでした")
@@ -162,14 +158,9 @@ func getMeem(s *discordgo.Session, m *discordgo.MessageCreate, c *discordgo.Chan
 	if discord.IsOwnMessage(s, m) {
 		return
 	}
-	keyword, err := getMessageKeyword(m, methodType{methodTypeGet})
-	if err != nil {
-		discord.SendMessage(s, c, "[get]キーワードが指定されてません。")
-		return
-	}
 
 	var meem db.Meem
-	connection.Select("Url, Keyword").Where("keyword like ?", "%"+keyword+"%").First(&meem)
+	connection.Select("Url, Keyword").Where("keyword like ?", "%"+strings.TrimSpace(m.Message.Content)+"%").Order("keyword asc").First(&meem)
 
 	if meem.Keyword == "" {
 		return
@@ -191,7 +182,7 @@ func deleteMeem(s *discordgo.Session, m *discordgo.MessageCreate, c *discordgo.C
 
 	var meem db.Meem
 
-	tx := connection.Model(&db.Meem{}).Where(db.Meem{ServerID: m.GuildID, UserID: m.Author.ID}).Where(id)
+	tx := connection.Model(&db.Meem{}).Where(db.Meem{UserID: m.Author.ID}).Where(id)
 	var count int
 	tx.Count(&count)
 	tx.Find(&meem)
@@ -222,7 +213,7 @@ func getList(s *discordgo.Session, m *discordgo.MessageCreate, c *discordgo.Chan
 	var meems []*db.Meem
 	var count int
 	var totalPage int
-	tx := connection.Model(&db.Meem{}).Where(db.Meem{ServerID: m.GuildID, UserID: m.Author.ID})
+	tx := connection.Model(&db.Meem{}).Where(db.Meem{UserID: m.Author.ID})
 	tx.Count(&count)
 	tx.Select("id, url, keyword").Offset((page - 1) * meemPerPage).Limit(meemPerPage).Find(&meems)
 	log.Println(count, len(meems))
